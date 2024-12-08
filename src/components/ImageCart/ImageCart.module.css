@@ -1,0 +1,13 @@
+.imageCart {
+  width: 300px;
+  height: 300px;
+}
+
+.cartImage {
+  object-fit: cover;
+  width: 300px;
+  height: 300px;
+}
+.cartImage:hover {
+  cursor: pointer;
+}

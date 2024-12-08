@@ -1,0 +1,37 @@
+.searchBar {
+  width: 100%;
+  background-color: blue;
+  padding: 0.5em 0;
+  margin-bottom: 10px;
+}
+.searchBar form {
+  margin: 0 auto;
+  width: max-content;
+}
+
+.searchLabel {
+  position: relative
+}
+.searchIcon {
+  position: absolute;
+  top: 50%;
+  left: 0.3em;
+  transform: translateY(-50%);
+  color: gray;
+  border: none;
+  background-color: inherit;
+  width: 1em;
+  height: 1em;
+  padding: 0;
+}
+.searchInput {
+  border: 1px gray solid;
+  border-radius: 3px;
+  padding-left: 1.5em;
+  height: 1.5em;
+}
+.searchInput:focus,
+.searchInput:active {
+  outline: none;
+  border: 1px yellow solid;
+}
