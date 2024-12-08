@@ -1,6 +1,4 @@
-import { useState, useRef } from 'react'
-import Modal from "react-modal"
-import css from "./App.module.css"
+import { useState, useEffect, useRef } from 'react'
 import { searchPhotos } from '../api/unsplash'
 import SearchBar from './SearchBar/SearchBar'
 import ImagesGallery from "./ImagesGallery/ImagesGallery"
@@ -17,21 +15,29 @@ function App() {
   const [isOpenModal, setIsOpenModal] = useState(false)
   const modalImage = useRef({})
 
-  const handleSearch = async (query) => {
-    try { 
-      setImagesData({})
-      setQueryStr(query)
-      setErrMsg('')
-      setLoading(true)
-      const data = await searchPhotos(query)
-      data.current_page = 1
-      setImagesData(data)
-    } catch (error) {
-      setErrMsg(error.message)
-    } finally {
-      setLoading(false)
-    }
+  const handleSearch = (query) => {
+    setQueryStr(query)
   }
+
+  useEffect(() => {
+    if (queryStr.length < 1)
+      return;
+    async function doSearch() {
+      try {
+        setImagesData({})
+        setErrMsg('')
+        setLoading(true)
+        const data = await searchPhotos(queryStr)
+        data.current_page = 1
+        setImagesData(data)
+      } catch (error) {
+        setErrMsg(error.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    doSearch();
+  }, [queryStr]);
 
   const handleLoadMore = async () => {
     try {
@@ -67,16 +73,11 @@ function App() {
       {loading && <Loader />}
       {errMsg.length > 0 && <APIError msg={errMsg} />}
       {imagesData.total_pages && imagesData.total_pages > imagesData.current_page && <LoadMore onLoad={handleLoadMore} />}
-      <Modal
+      <ImageModal
         isOpen={isOpenModal}
         onRequestClose={hadleCloseModal}
-        className={css.modalContainer}
-        overlayClassName={css.modalOverlay}
-        shouldReturnFocusAfterClose={true}
-        preventScroll={true}
-      >
-        <ImageModal onClick={hadleCloseModal} {...modalImage.current} />
-      </Modal>
+        {...modalImage.current}
+      />
     </>
   ) 
 }
