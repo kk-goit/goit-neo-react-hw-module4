@@ -10,6 +10,7 @@ import ImageModal from './ImageModal/ImageModal'
 function App() {
   const [imagesData, setImagesData] = useState({})
   const [queryStr, setQueryStr] = useState('')
+  const [currentPage, setCurrentPage] = useState(0)
   const [loading, setLoading] = useState(false)
   const [errMsg, setErrMsg] = useState('')
   const [isOpenModal, setIsOpenModal] = useState(false)
@@ -21,14 +22,16 @@ function App() {
 
   useEffect(() => {
     if (queryStr.length < 1)
-      return;
+      return // empty query string
+
     async function doSearch() {
       try {
         setImagesData({})
+        setCurrentPage(0)
         setErrMsg('')
         setLoading(true)
         const data = await searchPhotos(queryStr)
-        data.current_page = 1
+        setCurrentPage(1)
         setImagesData(data)
       } catch (error) {
         setErrMsg(error.message)
@@ -36,26 +39,36 @@ function App() {
         setLoading(false)
       }
     }
-    doSearch();
-  }, [queryStr]);
 
-  const handleLoadMore = async () => {
-    try {
-      setErrMsg('')
-      setLoading(true)
-      imagesData.current_page += 1
-      const data = await searchPhotos(queryStr, imagesData.current_page)
-      setImagesData({
-        ...data,
-        current_page: imagesData.current_page,
-        results: imagesData.results.concat(data.results)
-      })
-    } catch (error) {
-      setErrMsg(error.message)
-    } finally {
-      setLoading(false)
+    doSearch()
+  }, [queryStr])
+
+  const handleLoadMore = () => {
+    setCurrentPage(currentPage + 1)
+   }
+
+  useEffect(() => {
+    if (currentPage <= 1)
+      return // don't have data yet
+
+    async function getNextPage() {
+      try {
+        setErrMsg('')
+        setLoading(true)
+        const data = await searchPhotos(queryStr, currentPage)
+        setImagesData({
+          ...data,
+          results: imagesData.results.concat(data.results)
+        })
+      } catch (error) {
+        setErrMsg(error.message)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
+
+    getNextPage()
+  }, [currentPage])
 
   const hadleOpenModal = ({ data = {} }) => {
     modalImage.current = data
@@ -72,7 +85,7 @@ function App() {
       {imagesData.results && imagesData.results.length > 0 && <ImagesGallery images={imagesData.results} openModal={hadleOpenModal}/>}
       {loading && <Loader />}
       {errMsg.length > 0 && <APIError msg={errMsg} />}
-      {imagesData.total_pages && imagesData.total_pages > imagesData.current_page && <LoadMore onLoad={handleLoadMore} />}
+      {imagesData.total_pages && imagesData.total_pages > currentPage && <LoadMore onLoad={handleLoadMore} />}
       <ImageModal
         isOpen={isOpenModal}
         onRequestClose={hadleCloseModal}
