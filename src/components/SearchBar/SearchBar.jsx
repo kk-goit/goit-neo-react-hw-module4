@@ -7,7 +7,8 @@ function SearchBar({ onSearch = () => { } }) {
     e.preventDefault()
     const queryStr = e.target.elements.queryStr.value.trim()
     if (queryStr.length > 0) {
-      onSearch(queryStr)
+      if (!onSearch(queryStr))
+        toast.success(`You are already viewing the result for '${queryStr}'`)
       e.target.reset()
     } else
       toast.error('You need to enter something for searching...')

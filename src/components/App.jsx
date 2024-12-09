@@ -10,56 +10,45 @@ import ImageModal from './ImageModal/ImageModal'
 function App() {
   const [imagesData, setImagesData] = useState({})
   const [queryStr, setQueryStr] = useState('')
-  const [currentPage, setCurrentPage] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(false)
   const [errMsg, setErrMsg] = useState('')
   const [isOpenModal, setIsOpenModal] = useState(false)
   const modalImage = useRef({})
 
   const handleSearch = (query) => {
-    setQueryStr(query)
+    if (query != queryStr) {
+      setQueryStr(query)
+      setCurrentPage(1) // set default current page
+      setImagesData({}) // clean previews image's data
+
+      return true
+    } else
+      return false
   }
-
-  useEffect(() => {
-    if (queryStr.length < 1)
-      return // empty query string
-
-    async function doSearch() {
-      try {
-        setImagesData({})
-        setCurrentPage(0)
-        setErrMsg('')
-        setLoading(true)
-        const data = await searchPhotos(queryStr)
-        setCurrentPage(1)
-        setImagesData(data)
-      } catch (error) {
-        setErrMsg(error.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    doSearch()
-  }, [queryStr])
 
   const handleLoadMore = () => {
     setCurrentPage(currentPage + 1)
    }
 
   useEffect(() => {
-    if (currentPage <= 1)
-      return // don't have data yet
+    if (queryStr.length < 1)
+      return // empty query string
 
-    async function getNextPage() {
+    async function requestData() {
       try {
         setErrMsg('')
         setLoading(true)
         const data = await searchPhotos(queryStr, currentPage)
-        setImagesData({
-          ...data,
-          results: imagesData.results.concat(data.results)
-        })
+        if (currentPage == 1) 
+          // set new search data
+          setImagesData(data) 
+        else
+          // add new page data to existing ones
+          setImagesData({
+            ...data,
+            results: imagesData.results.concat(data.results)
+          })
       } catch (error) {
         setErrMsg(error.message)
       } finally {
@@ -67,8 +56,8 @@ function App() {
       }
     }
 
-    getNextPage()
-  }, [currentPage])
+    requestData()
+  }, [queryStr, currentPage])
 
   const hadleOpenModal = ({ data = {} }) => {
     modalImage.current = data
